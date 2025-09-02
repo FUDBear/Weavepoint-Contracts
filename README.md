@@ -1,6 +1,8 @@
 # Weavepoint Contracts
 
-<img src="https://arweave.net/I7sVGY9NqhlEXXhLLlRk790xn0BCc13oxg4bs0fOvc8" alt="Weavepoint Logo" width="200">
+<div align="center">
+  <img src="https://arweave.net/I7sVGY9NqhlEXXhLLlRk790xn0BCc13oxg4bs0fOvc8" alt="Weavepoint Logo" width="200">
+</div>
 
 AO is a powerful decentralized ecosystem where autonomous agents run independently, executing complex tasks all on their own.
 
@@ -30,7 +32,7 @@ end
 Track how tokens are moving across the ecosystem with data directly from one of the best DEX's on AO.
 
 ### Pyth
-<img src="https://arweave.net/0Cw9f2GIzM6NvfMDof3n95HLCOK3YUe_60uz_trhIDo" alt="Pyth Logo" width="100">
+<img src="https://arweave.net/0Cw9f2GIzM6NvfMDof3n95HLCOK3YUe_60uz_trhIDo" alt="Pyth Logo" width="70">
 
 Track some of the most popular tokens with super fast refresh rates on the Pyth network.
 
