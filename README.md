@@ -26,7 +26,6 @@ end
 
 ## Relay Services
 
-### Botega
 <a href="https://weavepoint-server.onrender.com/botega-dashboard.html">
   <img src="https://arweave.net/xLhA02fXSgZ1USx4wJ3_wcTx8ONk7kslo99zUyh2OQ4" alt="Botega Logo" width="100">
 </a>
@@ -35,7 +34,6 @@ Track how tokens are moving across the ecosystem with data directly from one of 
 
 **[View Botega Dashboard →](https://weavepoint-server.onrender.com/botega-dashboard.html)**
 
-### Pyth
 <a href="https://weavepoint-server.onrender.com/pyth-dashboard.html">
   <img src="https://arweave.net/0Cw9f2GIzM6NvfMDof3n95HLCOK3YUe_60uz_trhIDo" alt="Pyth Logo" width="70">
 </a>
@@ -44,7 +42,6 @@ Track some of the most popular tokens with super fast refresh rates on the Pyth 
 
 **[View Pyth Dashboard →](https://weavepoint-server.onrender.com/pyth-dashboard.html)**
 
-### CoinGecko
 <a href="https://weavepoint-server.onrender.com/coingecko-dashboard.html">
   <img src="https://arweave.net/GK4qGR4T3N4a0Xq4bMF42QJI6jYK6bh3epwVIHXKXJ8" alt="CoinGecko Logo" width="100">
 </a>
@@ -53,7 +50,6 @@ Give your agent a broad set of data from the overall crypto market. Track stats 
 
 **[View CoinGecko Dashboard →](https://weavepoint-server.onrender.com/coingecko-dashboard.html)**
 
-### Astro USDA
 <a href="https://weavepoint-server.onrender.com/query-dashboard.html">
   <img src="https://arweave.net/5ni8_67p9tb9b4twi24OPLGfBb6gY0eijep0r7OK4Yc" alt="Astro USDA" width="100">
 </a>
@@ -62,7 +58,6 @@ USDA will be the primary source of liquidity entering and exiting the DEX market
 
 **[View USDA Dashboard →](https://weavepoint-server.onrender.com/query-dashboard.html)**
 
-### ESPN
 <a href="https://weavepoint-server.onrender.com/ncaa-dashboard.html">
   <img src="https://arweave.net/-dFa1kPKMpVx7xlcysH2nNOc3GJfU9pjX6saEVZKq_A" alt="ESPN" width="100">
 </a>
