@@ -1,5 +1,5 @@
--- RawDogAgentTwo: ytRJJcWZ9umI8N0jQaI5pRQ5mKvVUBePUpHDh5TDQz8
--- RawDogAgentThree: inPYe3CzvBjT7q7ZJM5uqA2F-WE9XXyMipM8xh-8HC8
+-- Spawn: aos NCAAGameAgent --module=Do_Uc2Sju_ffp6Ev0AnLVdPtot15rvMjP-a9VVaA5fM --cron 30-seconds
+-- NOTE: This version of the agent is spawned from a process not aoconnect, some features or data might be slightly diffrent from the game agent spawned from Weavepoint
 local json = require("json")
 
 NCAA_RELAY = "ruKqeINStWIE0YK0gxJkgXWFJci6irA07JxbJJLOcBE"
@@ -7,30 +7,35 @@ LATEST_RELAY_DATA = "{}" -- All the data from teh ncaa relay
 LATEST_GAME_DATA = "{}" -- The data for the game we are tracking
 STOP_FLAG = "false" -- "true" to stop the agent
 TICKS = 0 -- Just keeps track of # of cron ticks
-GAME_ID = "401762522" -- temp id -- id of the game to track
-GAME_STATUS = "" -- Status of the game [Final, In Progress, Scheduled]
 
+GAME_INITIALIZED = false
+SPORT = ""
+ORGANIZATION = ""
+HOME_TEAM = ""
+AWAY_TEAM = ""
+GAME_ID = "" -- temp id -- id of the game to track
+GAME_STATUS = "" -- Status of the game [Final, In Progress, Scheduled]
 GAME_NAME = "" -- Name of the game
+
+
 VOTING_DATA = "{}" -- Data for the voting
 
 -- APUS
-APUS_ROUTER = "Bf6JJR2tl2Wr38O2-H6VctqtduxHgKF-NzRB9HhTRzo"
+APUS_PREDICTION_AGENT = "n0fNFdVjMSXzFH_nQVyhb5UG6MA4kC00lKz7A3UyzXM" -- old "AJFWbK51AsqRLaWfI-xdmFB1ZZcLeuLD3g5QftO1LFw"
+APUS_PREDICTION_INITIALIZED = false
 APUS_AI_COMMENT = ""; -- AI Comment of the game
 APUS_PREDICTION = ""; -- The prediction APUS AI Makes
 SENT_APUS_PREDICTION = false; -- The flag to check if the prompt was sent to APUS
 
-CurrentReference = CurrentReference or 0 -- Initialize or use existing reference counter
-Tasks = Tasks or {}                      -- Your process's state where results are stored
-Balances = Balances or "0"               -- Store balance information for each reference
-
-USDA = ""; -- USDA Token
-USDA_AMOUNT = "" -- Amount of USDA to pay to the winner
-RANDO_WINNER_INDEX = ""; -- Index of the winner in the random number generator
 
 Handlers.add("Info", "Info", function (msg)
     ao.send({ Target = msg.From, Action = "Info-Response", 
         ["Name"] = "TEST GAME AGENT", 
         ["GAME_ID"] = GAME_ID,
+        ["SPORT"] = SPORT,
+        ["ORGANIZATION"] = ORGANIZATION,
+        ["HOME_TEAM"] = HOME_TEAM,
+        ["AWAY_TEAM"] = AWAY_TEAM,
         ["GAME_STATUS"] = GAME_STATUS,
         ["APUS_AI_COMMENT"] = APUS_AI_COMMENT,
         ["APUS_AI_PREDICTION"] = APUS_PREDICTION,
@@ -51,46 +56,31 @@ end)
 Handlers.add("GetApusPrediction", "get-apus-prediction", function (msg)
     print( " ----- Getting Apus prediction ----- " )
     Send({ Target = APUS_ROUTER, Action = "Infer", Data = msg.Data })
-
-    -- ao.send({ Target = ao.id, Action = "Infer", Data = msg.Data })
-    
-    -- local res = Receive({Action = "Infer-Response"})
-    -- if res then
-    --     -- APUS_AI_PREDICTION = res.Data
-    --     -- print( "Apus prediction: " .. APUS_AI_PREDICTION )
-    --     print( "Apus prediction: " .. res.Data )
-    -- end
-
 end)
-
--- Handlers.add("GetApusPrediction", "get-apus-prediction", function (msg)
---     print( " ----- Getting Apus prediction ----- " )
---     ao.send({ Target = APUS_ROUTER, Action = "Infer", Data = "What is the prediction a college football between South Florida Bulls and Boise State Broncos?" })
---     local res = Receive({Action = "Infer-Response"})
---     if res then
---         APUS_AI_PREDICTION = res.Data
---     end
-
-
--- end)
 
 -- Handle cron messages for autonomous operation
 Handlers.add(
 "CronTick",
   Handlers.utils.hasMatchingTag("Action", "Cron"), -- Pattern to identify cron message
   function () -- Handler task to execute on cron message
-    TICKS = TICKS + 1
+
+    if STOP_FLAG == "true" then -- If the stop flag is true, stop the agent
+        print( "Agent Stopped" )
+        return
+    end
+
+    TICKS = TICKS + 1 -- Increment the ticks counter
 
     local timestamp_ms = os.time()
     local timestamp_seconds = math.floor(timestamp_ms / 1000)
     local readable_date = os.date("%Y-%m-%d %H:%M:%S", timestamp_seconds)
-
-    -- print("Ticks: " .. TICKS .. " Timestamp: " .. timestamp_seconds .. " Date: " .. readable_date)
-    -- GetLatestData()
-    -- GetInfoResponse()
-
-    -- Get prediction
-    if SENT_APUS_PREDICTION == false then
+    print("Ticks: " .. TICKS .. " Timestamp: " .. timestamp_seconds .. " Date: " .. readable_date) -- Print the ticks, timestamp, and date
+   
+   -- Get latest data from the ESPN relay
+    GetLatestData()
+    
+    -- Get prediction once we have a game id
+    if APUS_PREDICTION == "" or APUS_PREDICTION == "No prediction text available" then
         GetPrediction()
     end
     
@@ -100,7 +90,7 @@ Handlers.add(
 function GetPrediction()
     print( "----- Getting prediction ----- " )
     SENT_APUS_PREDICTION = true
-    ao.send({ Target = "AJFWbK51AsqRLaWfI-xdmFB1ZZcLeuLD3g5QftO1LFw", 
+    ao.send({ Target = APUS_PREDICTION_AGENT, 
         Action = "get-prediction", 
         GameID = GAME_ID })
     -- Note: The prediction agent will send back the result directly, no Receive needed
@@ -108,9 +98,8 @@ function GetPrediction()
 end
 
 -- Handler to receive prediction response
-Handlers.add("PredictionResponse", Handlers.utils.hasMatchingTag("Action", "prediction-response"), function(msg)
-    print("Received prediction response!")
-    APUS_PREDICTION = msg.Data or ""
+Handlers.add("PredictionResponse", Handlers.utils.hasMatchingTag("Action", "Prediction-Response"), function(msg)
+    APUS_PREDICTION = msg.Data or "" -- Set the APUS prediction
     print("APUS Prediction: " .. APUS_PREDICTION)
 end)
 
@@ -125,29 +114,10 @@ function GetLatestData()
     end
 end
 
--- function GetInfoResponse()
---     print( "----- Getting info response ----- " )
---     ao.send({ Target = "TOzrYdLxB2o_EOfp0uKmiSxh6REl4ClRhqpDuTIiRwk", Action = "Info" })
---     local res = Receive({Action = "Info-Response"})
---     if res then
---         print( res.Data )
---     end
--- end
-
 Handlers.add(
     "LatestDataResponse",
     Handlers.utils.hasMatchingTag("Action", "Latest-Data-Response"),
     function(msg)
-
-        
-
-        -- if msg.Data then
-        --     LATEST_RELAY_DATA = msg.Data
-        --     print( "Latest relay data received" )
-        --     print( LATEST_RELAY_DATA )
-        -- else
-        --     print( "Latest relay data not received" )
-        -- end
     end
 )
 
@@ -215,9 +185,80 @@ function ExtractLatestGameData()
         LATEST_GAME_DATA = json.encode(found_game)
         print("Found and stored game data for ID: " .. GAME_ID)
         CheckGameStatus()
+
+        if GAME_INITIALIZED == false then
+            InitGameData()
+        end
+
+        if APUS_PREDICTION_INITIALIZED == false and GAME_INITIALIZED == true then
+            InitGamePrediction()
+        end
+
     else
         print("Game with ID " .. GAME_ID .. " not found in relay data")
     end
+end
+
+function InitGameData()
+    print( " ---- Initializing Game Data  ---- " )
+    
+    -- Check if we have game data
+    if LATEST_GAME_DATA == "{}" then
+        print("No game data available")
+        return
+    end
+    
+    -- Decode the game data
+    local success, game_data = pcall(json.decode, LATEST_GAME_DATA)
+    if not success then
+        print("Failed to decode game data")
+        return
+    end
+    
+    -- Extract and set game variables
+    GAME_NAME = game_data.name or game_data.shortName or GAME_NAME
+    GAME_STATUS = game_data.status.detail or GAME_STATUS
+    
+    -- Extract sport and organization info
+    SPORT = "Football" -- Default for NCAA football
+    ORGANIZATION = "NCAA" -- Default organization
+    
+    -- Extract team information
+    if game_data.teams and #game_data.teams >= 2 then
+        for _, team in ipairs(game_data.teams) do
+            if team.homeAway == "home" then
+                HOME_TEAM = team.name or team.shortName or ""
+            elseif team.homeAway == "away" then
+                AWAY_TEAM = team.name or team.shortName or ""
+            end
+        end
+    end
+
+    GAME_INITIALIZED = true
+    
+    -- Print initialized data
+    print("Game initialized:")
+    print("  Game ID: " .. GAME_ID)
+    print("  Game Name: " .. GAME_NAME)
+    print("  Status: " .. GAME_STATUS)
+    print("  Sport: " .. SPORT)
+    print("  Organization: " .. ORGANIZATION)
+    print("  Home Team: " .. HOME_TEAM)
+    print("  Away Team: " .. AWAY_TEAM)
+    
+end
+
+function InitGamePrediction()
+    print( " ---- Initializing APUS game prediction ---- " )
+    Send({ Target = APUS_PREDICTION_AGENT, 
+        Action = "Infer", 
+        Sport = SPORT, 
+        Organization = ORGANIZATION, 
+        Home = HOME_TEAM, 
+        Away = AWAY_TEAM, 
+        GameID = GAME_ID })
+
+    APUS_PREDICTION_INITIALIZED = true
 end
 
 function CheckGameStatus()
@@ -270,105 +311,3 @@ end
 
 
 -- Add user voting for the game outcome Note: Add a % under each team to signify the oods
-
--- 
-
--- Apus
--- Handler to listen for prompts from your frontend
-Handlers.add(
-    "SendInfer",
-    Handlers.utils.hasMatchingTag("Action", "Infer"),
-    function(msg)
-        local reference = msg["X-Reference"] or msg.Reference
-        local requestReference = reference
-        local request = {
-            Target = APUS_ROUTER,
-            Action = "Infer",
-            ["X-Prompt"] = msg.Data,
-            ["X-Reference"] = reference
-        }
-        if msg["X-Session"] then
-            request["X-Session"] = msg["X-Session"]
-        end
-        if msg["X-Options"] then
-            request["X-Options"] = msg["X-Options"]
-        end
-        Tasks[requestReference] = {
-            prompt = request["X-Prompt"],
-            options = request["X-Options"],
-            session = request["X-Session"],
-            reference = reference,
-            status = "processing",
-            starttime = os.time(),
-        }
-        Send({
-            device = 'patch@1.0',
-            cache = {
-                tasks = Tasks
-            }
-        })
-        print( "Sending request to Apus: " .. request.Data )
-        ao.send(request)
-    end
-)
-
-Handlers.add(
-    "AcceptResponse",
-    Handlers.utils.hasMatchingTag("Action", "Infer-Response"),
-    function(msg)
-        local reference = msg.Tags["X-Reference"] or ""
-        print("Received Infer-Response for reference: " .. reference)
-
-        if msg.Tags["Code"] then
-            -- Update task status to failed
-            if Tasks[reference] then
-                local error_message = msg.Tags["Message"] or "Unknown error"
-                Tasks[reference].status = "failed"
-                Tasks[reference].error_message = error_message
-                Tasks[reference].error_code = msg.Tags["Code"]
-                Tasks[reference].endtime = os.time()
-            end
-            Send({
-                device = 'patch@1.0',
-                cache = {
-                    tasks = {
-                        [reference] = Tasks[reference] }
-                }
-            })
-            return
-        end
-        Tasks[reference].response = msg.Data or ""
-        Tasks[reference].status = "success"
-        Tasks[reference].endtime = os.time()
-        
-        -- Store the AI prediction if this was a game prediction request
-        if Tasks[reference].prompt and Tasks[reference].prompt:find("prediction") then
-            APUS_PREDICTION = msg.Data or ""
-            print("APUS AI Prediction received: " .. APUS_AI_PREDICTION)
-        end
-
-        Send({
-            device = 'patch@1.0',
-            cache = {
-                tasks = {
-                    [reference] = Tasks[reference] }
-            }
-        })
-    end
-)
-
-Handlers.add(
-    "GetInferResponse",
-    Handlers.utils.hasMatchingTag("Action", "GetInferResponse"),
-    function(msg)
-        local reference = msg.Tags["X-Reference"] or ""
-        if Tasks[reference] then
-            APUS_PREDICTION = Tasks[reference].response
-            print("Found task for reference: " .. reference .. " - Status: " .. (Tasks[reference].status or "unknown"))
-            -- msg.reply({Data = json.encode(Tasks[reference])})
-        else
-            print("Task not found for reference: " .. reference)
-            msg.reply({Data = "Task not found"}) -- if task not found, return error
-        end
-    end
-)
