@@ -1,7 +1,7 @@
 # Weavepoint Contracts
 
 <div align="center">
-  <img src="https://arweave.net/a1oV1GL54mZ7UYA9whTCRCBF00M2SxkjEkIqL9L2HLE" alt="Weavepoint Logo" width="300">
+  <img src="https://arweave.net/a1oV1GL54mZ7UYA9whTCRCBF00M2SxkjEkIqL9L2HLE" alt="Weavepoint Logo" width="400">
 </div>
 
 AO is a powerful decentralized ecosystem where autonomous agents run independently, executing complex tasks all on their own.
@@ -16,7 +16,7 @@ All your agent needs is a simple call to one of Weavepoint's AO Relays and your 
 
 ```lua
 function GetLatestData()
-    ao.send({ Target = NCAA_RELAY, Action = "get-latest-data" })
+    ao.send({ Target = WEAVEPOINT_RELAY, Action = "get-latest-data" })
     local res = Receive({Action = "Latest-Data-Response"})
     if res then
         LATEST_RELAY_DATA = res.Data
