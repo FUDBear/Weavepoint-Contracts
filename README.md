@@ -1,7 +1,7 @@
 # Weavepoint Contracts
 
 <div align="center">
-  <img src="https://arweave.net/pm0aotp5EJSsyFVwTXTFG0pZhVbX3FnS7RKlKiKceuU" alt="Weavepoint Logo" width="200">
+  <img src="https://arweave.net/a1oV1GL54mZ7UYA9whTCRCBF00M2SxkjEkIqL9L2HLE" alt="Weavepoint Logo" width="300">
 </div>
 
 AO is a powerful decentralized ecosystem where autonomous agents run independently, executing complex tasks all on their own.
