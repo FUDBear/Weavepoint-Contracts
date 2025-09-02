@@ -27,29 +27,49 @@ end
 ## Relay Services
 
 ### Botega
-<img src="https://arweave.net/xLhA02fXSgZ1USx4wJ3_wcTx8ONk7kslo99zUyh2OQ4" alt="Botega Logo" width="100">
+<a href="https://weavepoint-server.onrender.com/botega-dashboard.html">
+  <img src="https://arweave.net/xLhA02fXSgZ1USx4wJ3_wcTx8ONk7kslo99zUyh2OQ4" alt="Botega Logo" width="100">
+</a>
 
 Track how tokens are moving across the ecosystem with data directly from one of the best DEX's on AO.
 
+**[View Botega Dashboard →](https://weavepoint-server.onrender.com/botega-dashboard.html)**
+
 ### Pyth
-<img src="https://arweave.net/0Cw9f2GIzM6NvfMDof3n95HLCOK3YUe_60uz_trhIDo" alt="Pyth Logo" width="70">
+<a href="https://weavepoint-server.onrender.com/pyth-dashboard.html">
+  <img src="https://arweave.net/0Cw9f2GIzM6NvfMDof3n95HLCOK3YUe_60uz_trhIDo" alt="Pyth Logo" width="70">
+</a>
 
 Track some of the most popular tokens with super fast refresh rates on the Pyth network.
 
+**[View Pyth Dashboard →](https://weavepoint-server.onrender.com/pyth-dashboard.html)**
+
 ### CoinGecko
-<img src="https://arweave.net/GK4qGR4T3N4a0Xq4bMF42QJI6jYK6bh3epwVIHXKXJ8" alt="CoinGecko Logo" width="100">
+<a href="https://weavepoint-server.onrender.com/coingecko-dashboard.html">
+  <img src="https://arweave.net/GK4qGR4T3N4a0Xq4bMF42QJI6jYK6bh3epwVIHXKXJ8" alt="CoinGecko Logo" width="100">
+</a>
 
 Give your agent a broad set of data from the overall crypto market. Track stats like ETH dominance or 24hr changes.
 
+**[View CoinGecko Dashboard →](https://weavepoint-server.onrender.com/coingecko-dashboard.html)**
+
 ### Astro USDA
-<img src="https://arweave.net/5ni8_67p9tb9b4twi24OPLGfBb6gY0eijep0r7OK4Yc" alt="Astro USDA" width="100">
+<a href="https://weavepoint-server.onrender.com/query-dashboard.html">
+  <img src="https://arweave.net/5ni8_67p9tb9b4twi24OPLGfBb6gY0eijep0r7OK4Yc" alt="Astro USDA" width="100">
+</a>
 
 USDA will be the primary source of liquidity entering and exiting the DEX markets so tracking its movement is an extremely powerful tool for every AO Agent.
 
+**[View USDA Dashboard →](https://weavepoint-server.onrender.com/query-dashboard.html)**
+
 ### ESPN
-<img src="https://arweave.net/-dFa1kPKMpVx7xlcysH2nNOc3GJfU9pjX6saEVZKq_A" alt="ESPN" width="100">
+<a href="https://weavepoint-server.onrender.com/ncaa-dashboard.html">
+  <img src="https://arweave.net/-dFa1kPKMpVx7xlcysH2nNOc3GJfU9pjX6saEVZKq_A" alt="ESPN" width="100">
+</a>
 
 Whether it is a prediction market or fantasy football, Weavepoint's ESPN relay has the latest NCAA data ready for your agents.
+
+**[View NCAA Dashboard →](https://weavepoint-server.onrender.com/ncaa-dashboard.html)**
 
 ## Project Structure
 
@@ -67,6 +87,8 @@ Whether it is a prediction market or fantasy football, Weavepoint's ESPN relay h
 ## Validators
 
 Run your own Weavepoint Validator: [Weavepoint Validator](https://github.com/FUDBear/Weavepoint-Validator)
+
+**[View Validator Dashboard →](https://weavepoint-server.onrender.com/validator-dashboard.html)**
 
 ## FAQ
 
