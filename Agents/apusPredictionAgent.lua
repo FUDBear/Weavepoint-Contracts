@@ -1,16 +1,102 @@
--- Process ID: AJFWbK51AsqRLaWfI-xdmFB1ZZcLeuLD3g5QftO1LFw
+-- Process ID: AJFWbK51AsqRLaWfI-xdmFB1ZZcLeuLD3g5QftO1LFw -- Old Process ID: n0fNFdVjMSXzFH_nQVyhb5UG6MA4kC00lKz7A3UyzXM
 local json = require("json")
 
 -- Backend AO Process Logic (Core Flow from section 2.5)
 PREDICTIONS = "{}" -- { "gameId": "prediction" }
+BLACKLISTED_PROCESSES = { "ytRJJcWZ9umI8N0jQaI5pRQ5mKvVUBePUpHDh5TDQz8",
+ "inPYe3CzvBjT7q7ZJM5uqA2F-WE9XXyMipM8xh-8HC8",
+ "1iPDAvkNrBlOTH9JdeVN0P87fswqcUZwlHRBuumiEbs",
+ "z_opMm1QoR2CGShnvSVyTBtiazCi0KmbnEV8GBhTOy0"}
 
 CurrentReference = CurrentReference or 0 -- Initialize or use existing reference counter
 Tasks = Tasks or {}                      -- Your process's state where results are stored
 Balances = Balances or "0"               -- Store balance information for each reference
 
-APUS_ROUTER = "Bf6JJR2tl2Wr38O2-H6VctqtduxHgKF-NzRB9HhTRzo"
+APUS_ROUTER = "TED2PpCVx0KbkQtzEYBo0TRAO-HPJlpCMmUzch9ZL2g" -- Old Router "Bf6JJR2tl2Wr38O2-H6VctqtduxHgKF-NzRB9HhTRzo"
+
+-- Preset Handlers for Testing
+-- Send({ Target=ao.id, Action="Info" })
+-- Send({ Target=ao.id, Action="insert-prediction", Data="Alabama will win by 14 points in a defensive battle.", Tags={GameID="401752688", HomeTeam="Alabama", AwayTeam="Georgia", Sport="Football", Organization="NCAA"} })
+-- Send({ Target=ao.id, Action="insert-prediction", Data="Georgia Tech will win by 7 points in a close game.", Tags={GameID="401752687", HomeTeam="Georgia Tech", AwayTeam="Clemson", Sport="Football", Organization="NCAA"} })
+-- Send({ Target=ao.id, Action="insert-prediction", Data="LSU will dominate with a 21 point victory.", Tags={GameID="401752690", HomeTeam="LSU", AwayTeam="Auburn", Sport="Football", Organization="NCAA"} })
+-- Send({ Target=ao.id, Action="insert-prediction", Data="Florida State will win by 10 points in an offensive showcase.", Tags={GameID="401752691", HomeTeam="Florida State", AwayTeam="Miami", Sport="Football", Organization="NCAA"} })
+-- Send({ Target=ao.id, Action="get-prediction", Tags={GameID="401752688"} })
+-- Send({ Target=ao.id, Action="list-predictions" })
+-- Send({ Target=ao.id, Action="Infer", Sport="Football", Organization="NCAA", Home="Alabama", Away="Georgia", Tags={GameID="401752689"} })
+
+Handlers.add("Info", "Info", function (msg)
+    ao.send({ Target = msg.From, Action = "Info-Response", 
+        ["Name"] = "APUS PREDICTION AGENT", 
+        ["APUS_ROUTER"] = APUS_ROUTER,
+        ["Version"] = "0.0.1a",
+        ["PREDICTIONS"] = PREDICTIONS,
+        ["BLACKLISTED_PROCESSES"] = BLACKLISTED_PROCESSES,
+    })
+end)
+
+Handlers.add("InsertPrediction", "insert-prediction", function (msg)
+
+    -- Make sure the data is from a trusted process
+    if msg.From ~= ao.id then
+        print("Error: not allowed to insert prediction " .. msg.From)
+        return
+    end
+
+    local prediction = msg.Data
+    local gameId = msg.Tags["GameID"] or msg.Tags["Gameid"] or msg.Tags["gameid"] or msg.Tags["ID"] or msg.Tags["Id"] or msg.Tags["id"]
+    
+    if not gameId then
+        print("Error: No GameID provided in message tags")
+        ao.send({Target = msg.From, Data = "Error: GameID is required"})
+        return
+    end
+    
+    -- Safely decode existing PREDICTIONS JSON
+    local predictions_data = {}
+    if PREDICTIONS and PREDICTIONS ~= "{}" then
+        local success, decoded = pcall(json.decode, PREDICTIONS)
+        if success then
+            predictions_data = decoded
+        else
+            print("Failed to decode existing PREDICTIONS JSON, starting fresh")
+            predictions_data = {}
+        end
+    end
+    
+    -- Add or update the prediction for this game
+    predictions_data[gameId] = {
+        prediction = prediction,
+        status = "completed",
+        homeTeam = msg.Tags["HomeTeam"] or msg.Tags["Home"] or "Unknown",
+        awayTeam = msg.Tags["AwayTeam"] or msg.Tags["Away"] or "Unknown",
+        sport = msg.Tags["Sport"] or "Football",
+        organization = msg.Tags["Organization"] or "NCAA",
+        completedAt = os.time(),
+        inserted = true -- Flag to indicate this was manually inserted
+    }
+    
+    PREDICTIONS = json.encode(predictions_data)
+    print("Inserted prediction for game: " .. gameId)
+    
+    -- Send confirmation back
+    ao.send({
+        Target = msg.From, 
+        Data = "Prediction inserted successfully for game: " .. gameId,
+        Action = "Insert-Response",
+        Tags = {
+            ["GameID"] = gameId,
+            ["Status"] = "inserted"
+        }
+    })
+end)
 
 Handlers.add("GetPrediction", "get-prediction", function (msg)
+
+    if BLACKLISTED_PROCESSES[msg.From] then
+        print("Blacklisted process: " .. msg.From)
+        return
+    end
+
     print( " ----- Getting Prediction ----- " )
     
     -- Debug: Print the entire message structure
@@ -58,6 +144,7 @@ Handlers.add("GetPrediction", "get-prediction", function (msg)
         ao.send({
             Target = msg.From, 
             Data = prediction_entry.prediction or "No prediction text available",
+            Action = "Prediction-Response",
             Tags = {
                 ["GameID"] = gameId,
                 ["Status"] = prediction_entry.status or "unknown",
@@ -217,7 +304,16 @@ Handlers.add(
         Tasks[reference].endtime = os.time()
         
         -- Update PREDICTIONS table with the actual prediction
-        local predictions_data = json.decode(PREDICTIONS)
+        local predictions_data = {}
+        if PREDICTIONS and PREDICTIONS ~= "{}" then
+            local success, decoded = pcall(json.decode, PREDICTIONS)
+            if success then
+                predictions_data = decoded
+            else
+                print("Failed to decode PREDICTIONS JSON in AcceptResponse, starting fresh")
+                predictions_data = {}
+            end
+        end
         local gameId = Tasks[reference].gameId
         if gameId and predictions_data[gameId] then
             -- Extract the "result" field from the APUS response JSON
